@@ -6,32 +6,71 @@ import {mapUtils} from './mapUtils';
 import {popupModelExampleTwo} from './Popup/popupModels';
 import SidePopup from './Popup/SidePopup';
 
-import {isEmpty} from "../utils/helpers";
+import {getLayer, isEmpty} from "../utils/helpers";
 
 import CircularProgress from "@material-ui/core/CircularProgress";
 
 import './mapStyles.scss';
+
+
+// REDUX
+import {useDispatch, useSelector} from "react-redux";
+import {addLayerAction} from "../redux/actions/actions";
+
+// LAYER REQUESTS
+const harrisBoundaries = 'http://localhost:8001/harris_boundaries';
+const cities = 'https://opendata.arcgis.com/datasets/9004613214d74b5ca757f4cffef597dd_0.geojson';
 
 // layer style definitions
 const stationsStyle = new mapboxStyles.pointStyle('red').generateStyle();
 const homicideStyle = new mapboxStyles.pointStyle().generateStyle();
 const harrisBoundariesStyle = new mapboxStyles.polygonStyle('#4ea1df', 0.2, 'white').generateStyle();
 const citiesStyle = new mapboxStyles.polygonStyle('#df1a08', 1, 'white').generateStyle();
-const buildingFootprintsStyle = new mapboxStyles.polygonStyle('#43df18', 1, 'white').generateStyle();
 
 type Props = {
-    layers: any,
     activeFeature: MapboxGeoJSONFeature | null,
-    children?: any;
 }
 
 const Map: React.FC<Props> = (props: Props) => {
+
+    // const [layers, setLayer] = useState<Array<Feature>>([]);
+    const layers = useSelector((state:any) => state.layers)
+    // const [activeFeature, setActiveFeature] = useState<MapboxGeoJSONFeature | null>(null);
+
+    async function addLayer(endPoint: string, layerName: string) {
+
+        let data = await getLayer(endPoint, layerName);
+        // case for koordinates API
+        if(data.vectorQuery) {
+            data = data.vectorQuery.layers[12890];
+            data.id = 'buildingFootprints';
+        }
+            dispatch(addLayerAction(data));
+    }
+
     const mapContainer = useRef<HTMLDivElement>(null);
+    // const layers = useSelector((state:any) => state.layers);
     const [map, setMap] = useState<mapboxgl.Map>();
     const [home] = useState(new mapboxgl.LngLat(-95.3900, 29.7752));
     const [currentLocation, setCurrentLocation] = useState({currentLat: null, currentLng: null});
     const [currentFeature, setCurrentFeature] = useState<MapboxGeoJSONFeature | null>(null);
 
+    const dispatch = useDispatch();
+
+    // layer request
+    useEffect(() => {
+        // add any datasets for initial load here
+        const initialDataLoad = () => {
+            // addLayer(stationsUrl, 'stations');
+            addLayer(harrisBoundaries, 'harrisBoundaries');
+            addLayer(cities, 'cities');
+            // addLayer(buildingFootprints, 'buildingFootprints');
+        };
+
+        if (isEmpty(layers)) {
+            initialDataLoad();
+        }
+    } );
 
     // map initialization
     useEffect(() => {
@@ -90,7 +129,7 @@ const Map: React.FC<Props> = (props: Props) => {
                 return(popup);
             });
             map.on('click', 'cities', (e) => {
-                console.log(e.features)
+                // console.log(e.features)
             });
         };
         // only create map object once and only if key is provided
@@ -99,11 +138,11 @@ const Map: React.FC<Props> = (props: Props) => {
 
     // layer loading
     useEffect(() => {
-        if (!isEmpty(props.layers) && map) {
-            for (let l in props.layers) {
-                let layer = props.layers[l];
-                console.log(layer);
+        if (!isEmpty(layers) && map) {
+            for (let l in layers) {
+                let layer = layers[l];
 
+                // @ts-ignore
                 if (!map.getSource(layer.id)) {
                     map.addSource(
                         layer.id,
@@ -132,9 +171,9 @@ const Map: React.FC<Props> = (props: Props) => {
                         layer = new mapUtils.BuildLayer(layer.id, 'fill', citiesStyle);
                     }
 
-                    if (layer.id === 'buildingFootprints') {
-                        layer = new mapUtils.BuildLayer(layer.id, 'fill', buildingFootprintsStyle);
-                    }
+                    // if (layer.id === 'buildingFootprints') {
+                    //     layer = new mapUtils.BuildLayer(layer.id, 'fill', buildingFootprintsStyle);
+                    // }
 
                     map.addLayer(layer);
 
@@ -145,7 +184,7 @@ const Map: React.FC<Props> = (props: Props) => {
                 }
             }
         }
-    }, [props.layers, map]);
+    }, [layers, map]);
 
     // list to map effects
     useEffect(() => {
@@ -165,6 +204,7 @@ const Map: React.FC<Props> = (props: Props) => {
             }
         }
     }, [map, props.activeFeature, currentFeature]);
+
 
     return (
         <div ref={mapContainer}
