@@ -6,7 +6,7 @@ import {mapUtils} from './mapUtils';
 import {popupModelExampleTwo} from './Popup/popupModels';
 import SidePopup from './Popup/SidePopup';
 
-import {getLayer, isEmpty} from "../utils/helpers";
+import {isEmpty} from "../utils/helpers";
 
 import CircularProgress from "@material-ui/core/CircularProgress";
 
@@ -15,7 +15,6 @@ import './mapStyles.scss';
 
 // REDUX
 import {useDispatch, useSelector} from "react-redux";
-import {addLayerAction} from "../redux/actions/actions";
 
 // LAYER REQUESTS
 const harrisBoundaries = 'http://localhost:8001/harris_boundaries';
@@ -33,27 +32,14 @@ type Props = {
 
 const Map: React.FC<Props> = (props: Props) => {
 
-    // const [layers, setLayer] = useState<Array<Feature>>([]);
-    const layers = useSelector((state:any) => state.layers)
-    // const [activeFeature, setActiveFeature] = useState<MapboxGeoJSONFeature | null>(null);
-
-    async function addLayer(endPoint: string, layerName: string) {
-
-        let data = await getLayer(endPoint, layerName);
-        // case for koordinates API
-        if(data.vectorQuery) {
-            data = data.vectorQuery.layers[12890];
-            data.id = 'buildingFootprints';
-        }
-            dispatch(addLayerAction(data));
-    }
-
     const mapContainer = useRef<HTMLDivElement>(null);
-    // const layers = useSelector((state:any) => state.layers);
     const [map, setMap] = useState<mapboxgl.Map>();
     const [home] = useState(new mapboxgl.LngLat(-95.3900, 29.7752));
     const [currentLocation, setCurrentLocation] = useState({currentLat: null, currentLng: null});
     const [currentFeature, setCurrentFeature] = useState<MapboxGeoJSONFeature | null>(null);
+
+    const layers = useSelector((state: any) => state.layers)
+    // const [activeFeature, setActiveFeature] = useState<MapboxGeoJSONFeature | null>(null);
 
     const dispatch = useDispatch();
 
@@ -61,16 +47,14 @@ const Map: React.FC<Props> = (props: Props) => {
     useEffect(() => {
         // add any datasets for initial load here
         const initialDataLoad = () => {
-            // addLayer(stationsUrl, 'stations');
-            addLayer(harrisBoundaries, 'harrisBoundaries');
-            addLayer(cities, 'cities');
-            // addLayer(buildingFootprints, 'buildingFootprints');
+            dispatch({type: "REQUEST_LAYER", layer: harrisBoundaries, id: 'harrisBoundaries'});
+            dispatch({type: "REQUEST_LAYER", layer: cities, id: 'cities'});
         };
 
         if (isEmpty(layers)) {
             initialDataLoad();
         }
-    } );
+    });
 
     // map initialization
     useEffect(() => {
@@ -124,12 +108,11 @@ const Map: React.FC<Props> = (props: Props) => {
                 }
                 hoveredStateId = null;
             });
-            map.on('click', 'stations', (e) => {
+            map.on('click', 'cities', (e) => {
                 const popup = mapUtils.makePopupInPlace(e, map, popupModelExampleTwo);
-                return(popup);
+                return (popup);
             });
             map.on('click', 'cities', (e) => {
-                // console.log(e.features)
             });
         };
         // only create map object once and only if key is provided
@@ -148,7 +131,7 @@ const Map: React.FC<Props> = (props: Props) => {
                         layer.id,
                         {
                             "type": "geojson",
-                            // server request, from parent component
+                            // remote layer requested
                             data: layer,
                             // necessary in order to use feature state. Might vary depending on dataset
                             promoteId: 'id'
@@ -178,8 +161,8 @@ const Map: React.FC<Props> = (props: Props) => {
                     map.addLayer(layer);
 
                     // handle layer order
-                    if (map.getSource('harrisBoundaries') && map.getSource('stations')) {
-                        map.moveLayer('harrisBoundaries', 'stations');
+                    if (map.getSource('harrisBoundaries') && map.getSource('cities')) {
+                        map.moveLayer('harrisBoundaries', 'cities');
                     }
                 }
             }

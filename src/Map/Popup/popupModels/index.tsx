@@ -11,11 +11,11 @@ export const popupModelExampleOne = (p: any) => {
 };
 
 export const popupModelExampleTwo = (p: any) => {
-    const longName = p.long_name;
+    const longName = p.name;
     const url = `https://google.com/search?q=${longName}`;
     return (`<div class="popup-two">
-               <h2>SOME TITLE HERE</h2>
-               <p>This is station:</p>
+               <h2>${longName}</h2>
+               <p>More information:</p>
                <a href="${url}" target="blank">${longName}</a> 
             </div>`);
 };
