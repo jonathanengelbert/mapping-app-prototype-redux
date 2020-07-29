@@ -1,4 +1,3 @@
-
 // test if object is empty
 export function isEmpty(obj: Object) {
     for (let key in obj) {
@@ -10,7 +9,7 @@ export function isEmpty(obj: Object) {
 
 // LAYER HANDLING
 // async fuction to retrieve layer from an endpoint
-export const getLayer: Function = async (url: string, id: string, setter: Function) => {
+export const getLayer: Function = async (url: string, id: string) => {
     // handle abscence of parameters
     if (!id || !url) {
         throw new Error ('Layer ID or URL missing. ' +

@@ -1,26 +1,23 @@
-import { put, takeEvery, all } from 'redux-saga/effects'
+import { put, takeEvery, all, call } from 'redux-saga/effects'
+import {getLayer} from "../utils/helpers";
 
 
-const delay = (ms: number) => new Promise(res => setTimeout(res, ms))
+function* addLayerSaga(action: { type: "REQUEST_LAYER", layer: any; id: any; }) {
+    console.log("ACTION", action.id)
+    // @ts-ignore
+    const data = yield call(getLayer, action.layer, action.id);
+    yield put({
+        type:"ADD_LAYER",
+        layer: data,
+        id: action.id
+    });
 
-// ...
-
-// Our worker Saga: will perform the async increment task
-function* incrementAsync() {
-    yield delay(3000);
-    yield put({ type: 'INCREMENT' });
-}
-
-function* decrementAsync() {
-    yield delay(3000);
-    yield put({ type: 'DECREMENT' });
 }
 
 export function *rootSaga() {
     yield all([
-        takeEvery("TEST", incrementAsync),
-        takeEvery("DECREMENT_ASYNC", decrementAsync)
-
+        takeEvery("REQUEST_LAYER", addLayerSaga),
     ])
 }
+
 
