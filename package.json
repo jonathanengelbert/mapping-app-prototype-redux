@@ -1,5 +1,5 @@
 {
-  "name": "app-geo-demo-api",
+  "name": "mapping-app-prototype-redux",
   "version": "1.0.0",
   "private": true,
   "dependencies": {
