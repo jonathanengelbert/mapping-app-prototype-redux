@@ -1,18 +1,11 @@
 import {combineReducers} from "redux";
-import {addLayerReducer} from "./addLayerReducer";
-import {dummyDataReducer} from "./testReducer";
-interface IAppState {
-    layers: any[],
-}
-
-const INITIAL_STATE: IAppState = {
-    layers: [],
-};
+import addLayer from "./addLayerReducer";
+import addDummy from "./testReducer";
 
 
 export const rootReducer = combineReducers({
-    addLayerReducer,
-        // dummyDataReducer,
+    addDummy,
+    addLayer,
 });
 
 

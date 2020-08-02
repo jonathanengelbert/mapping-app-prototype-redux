@@ -3,11 +3,11 @@ import {getLayer} from "../utils/helpers";
 
 
 function* addLayerSaga(action: { type: "REQUEST_LAYER", layer: any; id: any; }) {
-    console.log("ACTION", action.id)
+    console.log("ACTION", action.id);
     // @ts-ignore
     const data = yield call(getLayer, action.layer, action.id);
     yield put({
-        type:"ADD_LAYER",
+        type:"layers/addLayers",
         layer: data,
         id: action.id
     });

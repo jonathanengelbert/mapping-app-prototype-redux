@@ -207,6 +207,7 @@ const Map: React.FC<Props> = (props: Props) => {
                             pitch: 0
                         })}>HOME
                         </button>
+                        <button onClick={() => dispatch({type: 'dummy/addDummy', dummyData: 'Dummy stuff'})}>DUMMY</button>
                     </div>
                     :
                     <CircularProgress className={'spinning-wheel-white'}/>
